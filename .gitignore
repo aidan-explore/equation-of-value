@@ -1,0 +1,29 @@
+# Ignore Streamlit cache files
+/.streamlit/cache/*
+
+# Ignore Streamlit logs
+/logs/*
+
+# Ignore Python bytecode
+*.pyc
+
+# Ignore virtual environment data
+*.egg-info/
+*.venv/
+
+# Ignore IDE-specific files
+.idea/workspace.xml
+*.iml
+*.ipynb
+
+# Ignore other files and directories that shouldn't be committed
+*.DS_Store
+*/__pycache__/*
+*/.pytest_cache/*
+
+# Streamlit specific ignore patterns
+/.streamlit/local-packages/.*
+*/.streamlit/*.pyc
+*.streamlit.cache/
+
+.vscode/*
