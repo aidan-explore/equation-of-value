@@ -4,7 +4,6 @@ import pandas as pd
 from models.healthpost import HealthPost, Equipment, Service
 from charts.breakdown import chart_cost_breakdown
 
-
 def calculate_income_statement_model() -> HealthPost:
 
     hp = HealthPost(
@@ -20,7 +19,7 @@ def calculate_income_statement_model() -> HealthPost:
     return hp
 
 # Define the input parameters
-st.title("Rural Health Post Sustainability")
+st.title("Health Post Sustainability")
 
 st.header("Income Statement")
 income_statement = st.empty()
@@ -32,12 +31,15 @@ col1, col2 = st.columns(2)
 number_of_patients = int(col1.number_input("Number of Patients per day: ", value= 100, min_value=1, step=1, key='patients'))
 average_revenue_per_patient = float(col2.number_input("Average Revenue per Patient Visit: $", value=10, key="rev_per_visit"))
 
-st.header("Cost Drivers")
-st.subheader("Salaries")
-
 col1, col2 = st.columns(2)
+col1.header("Cost Drivers")
+cost_per_patient = col2.empty()
+
+st.subheader("Salaries")
+col1, col2, col3 = st.columns(3)
 number_of_nurses = int(col1.number_input("Number of Nurses: ", min_value=1, step=1, value=10, key='nurses'))
 average_salary = float(col2.number_input("Average Salary per Nurse: $", value=10_000, key='salary'))
+patients_per_nurse = col3.empty()
 
 st.subheader("Cost of Care")
 service_data = [
@@ -61,6 +63,7 @@ st.session_state['service'] = st.data_editor(service_df,
                key='service_change', use_container_width = True, on_change=update_cases)
 
 st.subheader("Equipment Costs")
+#TODO move to assumptions page
 equipment_data = [
     ['Starlink', 10_000, 10, 1],
     ['eFiche', 100, 50, 1]
@@ -87,5 +90,10 @@ with charts:
     with st.expander("Click down to see charts"):
         st.pyplot(chart_cost_breakdown(hp))
 
+cost_per_patient.metric(label="Cost per patient", 
+              value=f"USD {hp.cost_per_patient:,.1f}")
+
+patients_per_nurse.metric(label="Patients per nurse per day",
+                          value=f"{hp.patients_per_nurse:,.1f}")
 st.markdown("### Note:")
 st.markdown("The above calculations are based on the assumptions made and may not reflect actual financial performance of a rural health post.")

@@ -46,6 +46,14 @@ class HealthPost(BaseModel):
         return self.salaries_cost + self.cost_of_care + self.equipment_capital + self.equipment_maintenance
     
     @property
+    def cost_per_patient(self) -> float:
+        return (self.total_cost / 220) / self.patients
+    
+    @property
+    def patients_per_nurse(self) -> float:
+        return self.patients / self.nurses
+
+    @property
     def net_income(self) -> float:
         return self.revenue - self.total_cost
 
