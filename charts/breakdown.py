@@ -12,6 +12,6 @@ def chart_cost_breakdown(hp: HealthPost) -> plt:
     # Set title and labels
     plt.title("Individual Costs in Total Cost")
     plt.xlabel("Cost Category")
-    plt.ylabel("Cost (USD)")
+    plt.ylabel("Cost (RWF)")
 
     return plt

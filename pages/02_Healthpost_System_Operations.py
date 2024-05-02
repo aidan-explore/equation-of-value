@@ -70,9 +70,9 @@ def plot_health_post_revenue(healthposts: List[HealthPost]) -> None:
     return fig, ax
 
 st.title('Simulating Health Post Profitability')
-num_healthposts = st.session_state.num_healthposts 
-ave_patients    = st.session_state.ave_patients 
-rev_patient     = st.session_state.rev_patient 
+num_healthposts = st.session_state['num_healthposts'] 
+ave_patients    = st.session_state['ave_patients'] 
+rev_patient     = st.session_state['rev_patient']
 
 healthposts = [HealthPost(f"Healthpost {i}", ave_patients, rev_patient) for i in range(num_healthposts)]
 

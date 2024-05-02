@@ -1,17 +1,19 @@
 import streamlit as st
 import pandas as pd
 
-from models.healthpost import HealthPost, Equipment, Service
+from models.healthpost import HealthPost, Equipment, Service, HealthCareWorker
 from charts.breakdown import chart_cost_breakdown
 
 def calculate_income_statement_model() -> HealthPost:
+    for k, v in st.session_state.service.iterrows():
+        print (k, v)
+        break
 
     hp = HealthPost(
         name = "",
         patients = st.session_state.patients, 
         rev_per_visit = st.session_state.rev_per_visit,
-        nurses = st.session_state.nurses,
-        salary = st.session_state.salary,
+        nurses = [HealthCareWorker(salary=st.session_state.salary) for _ in range(st.session_state.num_nurses)],
         equipment = [Equipment(equipment_type=k,**v) for k, v in st.session_state.equipment.iterrows()],
         service = [Service(service_type=k, **v) for k, v in st.session_state.service.iterrows()]
     )
@@ -28,8 +30,8 @@ charts = st.empty()
 st.header("Revenue Drivers")
 col1, col2 = st.columns(2)
 
-number_of_patients = int(col1.number_input("Number of Patients per day: ", value= 100, min_value=1, step=1, key='patients'))
-average_revenue_per_patient = float(col2.number_input("Average Revenue per Patient Visit: $", value=10, key="rev_per_visit"))
+number_of_patients = int(col1.number_input("Number of Patients per day: ", value=20, min_value=1, step=1, key='patients'))
+average_revenue_per_patient = float(col2.number_input("Average Revenue per Patient Visit: $", value=1_500, key="rev_per_visit"))
 
 col1, col2 = st.columns(2)
 col1.header("Cost Drivers")
@@ -37,20 +39,13 @@ cost_per_patient = col2.empty()
 
 st.subheader("Salaries")
 col1, col2, col3 = st.columns(3)
-number_of_nurses = int(col1.number_input("Number of Nurses: ", min_value=1, step=1, value=10, key='nurses'))
-average_salary = float(col2.number_input("Average Salary per Nurse: $", value=10_000, key='salary'))
+number_of_nurses = int(col1.number_input("Number of Nurses: ", min_value=1, step=1, value=2, key='num_nurses'))
+average_salary = float(col2.number_input("Average Annual Salary per Nurse: RWF", value=6_000_000, key='salary', ))
 patients_per_nurse = col3.empty()
 
 st.subheader("Cost of Care")
-service_data = [
-    ['Pregnancy', 1000, 0.5],
-    ['Malaria', 100, 0.5]
-]
-service_df = pd.DataFrame(data=service_data,
-                            columns=['service_type', 'cost_per_service', 'service_prop'])
-service_df.set_index('service_type', inplace=True)
-service_df = service_df.astype(float)
-service_df['cases'] = service_df['service_prop'] * st.session_state.patients
+df = st.session_state['services']
+df['cases'] = df['service_prop'] * st.session_state.patients
 
 # TODO update case column on service proportion change
 def update_cases():
@@ -58,18 +53,12 @@ def update_cases():
     df['cases'] = df['service_prop'] * st.session_state.patients
     st.session_state['service'] = df
 
-st.session_state['service'] = st.data_editor(service_df, 
+st.session_state['service'] = st.data_editor(df, 
                num_rows = "dynamic",
                key='service_change', use_container_width = True, on_change=update_cases)
 
 st.subheader("Equipment Costs")
-#TODO move to assumptions page
-equipment_data = [
-    ['Starlink', 10_000, 10, 1],
-    ['eFiche', 100, 50, 1]
-]
-equipment_df = pd.DataFrame(data=equipment_data,
-                            columns=['equipment_type', 'capital_investment', 'monthly_maintenance', 'num_units'])
+equipment_df = pd.read_csv('data/equipment.csv')
 equipment_df.set_index('equipment_type', inplace=True)
 equipment_df = equipment_df.astype(float)
 st.session_state['equipment'] = st.data_editor(equipment_df, 
@@ -82,18 +71,19 @@ hp = calculate_income_statement_model()
 with income_statement:
     col1, col2, col3 = st.columns(3)
 
-    col1.write(f"Revenue: ${hp.revenue:,.0f}")
-    col2.write(f"Total Cost: ${hp.total_cost:,.0f}")
-    col3.write(f"Net Income: ${hp.net_income:,.0f}")
+    col1.metric(f"Annual Revenue: RWF", value=f"{hp.revenue:,.0f}")
+    col2.metric(f"Annual Cost: RWF", f"{hp.total_cost:,.0f}")
+    col3.metric(f"Net Income: RWF", f"{hp.net_income:,.0f}")
 
 with charts:
     with st.expander("Click down to see charts"):
         st.pyplot(chart_cost_breakdown(hp))
 
 cost_per_patient.metric(label="Cost per patient", 
-              value=f"USD {hp.cost_per_patient:,.1f}")
+              value=f"RWF {hp.cost_per_patient:,.1f}")
 
 patients_per_nurse.metric(label="Patients per nurse per day",
                           value=f"{hp.patients_per_nurse:,.1f}")
+
 st.markdown("### Note:")
 st.markdown("The above calculations are based on the assumptions made and may not reflect actual financial performance of a rural health post.")
