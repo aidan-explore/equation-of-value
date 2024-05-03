@@ -1,7 +1,18 @@
+import datetime as dt
 import pandas as pd
 import streamlit as st
 
+from utils.constants import CONSTANT
+
+
 st.title('Assumptions for Health Post Profitability')
+
+st.header('Overall Assumptions')
+col1, col2, col3, col4 = st.columns(4)
+col1.date_input("Start date for projections", value=CONSTANT['start_date'], key='start_date')
+col2.date_input("End date for projections", value=CONSTANT['end_date'], key='end_date')
+col3.selectbox('Reporting currency?', options=['RWF', 'USD'], key='currency', disabled=True)
+col4.number_input('USD / RWF exchange rate', value=CONSTANT['USDxRWF'], key='USDxRWF', disabled=True)
 
 st.header('Revenue assumptions')
 col1, col2, col3 = st.columns(3)
@@ -11,7 +22,7 @@ col2.number_input('Number of Patients Per Day', value=20, key='ave_patients')
 col3.number_input('Average Revenue Per Visit RWF', value=1500, key='rev_patient')
 
 st.header('Expense assumptions')
-healthposts, nurses, services, equipment = st.tabs(['Healthposts', 'Nurses', 'Services', 'Equipment'])
+healthposts, nurses, services, equipment, constants = st.tabs(['Healthposts', 'Nurses', 'Services', 'Equipment', 'Constants'])
 
 if 'healthposts' not in st.session_state:
     df = pd.read_csv('data/healthposts.csv')
@@ -46,6 +57,8 @@ with healthposts:
 services.dataframe(st.session_state['services'], use_container_width=True)
 equipment.dataframe(st.session_state['equipment'], use_container_width=True)
 nurses.dataframe(st.session_state['nurses'], use_container_width=True)
+
+constants.write(CONSTANT)
 
 
 

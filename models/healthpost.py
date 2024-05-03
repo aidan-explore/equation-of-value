@@ -1,16 +1,21 @@
 from __future__ import annotations
 from uuid import UUID
+from models.cashflow import CashFlow, CashFlowAggregator
+import datetime as dt
 
+from utils.constants import CONSTANT
 from pydantic import BaseModel
 
 # TODO put this is in a better place
-USDxRWF = 1_300
-WORKING_DAYS = 220
+SALARY = 10_000
 
 class HealthCareWorker(BaseModel):
     id: UUID | None = None
     name: str = None
-    salary: float = 10_000
+    salary: float = SALARY
+    start_date: dt.date = CONSTANT['start_date']
+    end_date: dt.date = CONSTANT['end_date']
+    
 
 class Equipment(BaseModel):
     equipment_type: str
@@ -48,7 +53,7 @@ class HealthPost(BaseModel):
 
     @property
     def revenue(self) -> float:
-        return self.patients * self.rev_per_visit * WORKING_DAYS
+        return self.patients * self.rev_per_visit * CONSTANT['WORKING_DAYS']
     
     @property
     def num_nurses(self) -> float:
@@ -60,15 +65,15 @@ class HealthPost(BaseModel):
     
     @property
     def cost_of_care(self) -> float:
-        return sum([s.cases * s.cost_per_service for s in self.service]) * WORKING_DAYS
+        return sum([s.cases * s.cost_per_service for s in self.service]) * CONSTANT['WORKING_DAYS']
 
     @property
     def equipment_capital(self) -> float:
-        return sum([e.num_units * e.capital_investment for e in self.equipment]) * USDxRWF
+        return sum([e.num_units * e.capital_investment for e in self.equipment]) * CONSTANT['USDxRWF']
     
     @property
     def equipment_maintenance(self) -> float:
-        return sum([e.num_units * e.monthly_maintenance * 12 for e in self.equipment]) * USDxRWF
+        return sum([e.num_units * e.monthly_maintenance * 12 for e in self.equipment]) * CONSTANT['USDxRWF']
     
     @property
     def total_cost(self) -> float:
@@ -85,6 +90,38 @@ class HealthPost(BaseModel):
     @property
     def net_income(self) -> float:
         return self.revenue - self.total_cost
+    
+    @property
+    def npv(self) -> float:
+        return self.generate_cashflows().npv
+    
+    def generate_cashflows(self) -> CashFlowAggregator:
+        
+        rev_cf = CashFlow(  name='patient_rev', 
+                            amount=self.patients * self.rev_per_visit,
+                            frequency='D'
+                            )
+
+        cfs = [rev_cf]
+        for nurse in self.nurses:
+            nurse_cf = CashFlow( 
+                name=nurse.name if nurse.name is not None else f"nurse_id_{nurse.id}", 
+                amount=-nurse.salary /12,
+                frequency='ME'
+                )
+            cfs.append(nurse_cf)
+
+        for equipment in self.equipment:
+            capital = CashFlow(name=f"{equipment.equipment_type}_capital", 
+                             amount = -equipment.capital_investment * equipment.num_units * CONSTANT['USDxRWF'],
+                             cashflow_type='once-off')
+            maintain = CashFlow(name=f"{equipment.equipment_type}_maintain",
+                                amount = -equipment.monthly_maintenance * equipment.num_units * CONSTANT['USDxRWF'],
+                                )
+            cfs.extend([capital, maintain])
+
+        return CashFlowAggregator(cfs)
+
     
     def __add__(self, other: HealthPost) -> HealthPost:
         patients = self.patients + other.patients

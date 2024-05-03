@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+from utils.constants import CONSTANT
 from models.healthpost import HealthPost, Equipment, Service, HealthCareWorker
 from charts.breakdown import chart_cost_breakdown
 
@@ -69,15 +70,20 @@ st.session_state['equipment'] = st.data_editor(equipment_df,
 hp = calculate_income_statement_model()
 
 with income_statement:
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric(f"Annual Revenue: RWF", value=f"{hp.revenue:,.0f}")
-    col2.metric(f"Annual Cost: RWF", f"{hp.total_cost:,.0f}")
-    col3.metric(f"Net Income: RWF", f"{hp.net_income:,.0f}")
+    col1.metric(f"1st Year Revenue: RWF", value=f"{hp.revenue:,.0f}")
+    col2.metric(f"1st Year Cost: RWF", f"{hp.total_cost:,.0f}")
+    col3.metric(f"1st Year Net Income: RWF", f"{hp.net_income:,.0f}")
+    col4.metric(f"NPV @ {CONSTANT['discount_rate'] * 100:,.1f}%", f"{hp.npv:,.0f}")
 
 with charts:
-    with st.expander("Click down to see charts"):
-        st.pyplot(chart_cost_breakdown(hp))
+    with st.expander("Click down to see detailed breakdown"):
+        cost_breakdown, cashflow_chart, cashflows = st.tabs(['Cost Breakdown', 'Cashflow Chart', 'Cashflows'])
+        cost_breakdown.pyplot(chart_cost_breakdown(hp))
+        cfs = hp.generate_cashflows()
+        cashflows.dataframe(cfs.df)
+        cashflow_chart.bar_chart(cfs.aggregate_frequency('QE'), y='total')
 
 cost_per_patient.metric(label="Cost per patient", 
               value=f"RWF {hp.cost_per_patient:,.1f}")
