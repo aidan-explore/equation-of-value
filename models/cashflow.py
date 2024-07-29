@@ -12,7 +12,8 @@ class CashFlow(BaseModel):
     start_date: dt.date = CONSTANT['start_date']
     end_date: dt.date = CONSTANT['end_date']
     frequency: Literal['D', 'WD', 'ME', 'QE', 'Y'] = 'ME'
-    cashflow_type: Literal['repeat', 'smooth', 'once-off'] = "repeat" 
+    cashflow_type: Literal['repeat', 'smooth', 'once-off'] = "repeat"
+    tag: Literal['revenue', 'salary', 'cost_of_care', 'equipment']
 
     @property
     def cashflow(self):

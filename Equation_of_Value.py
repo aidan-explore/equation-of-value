@@ -6,7 +6,7 @@ from utils.constants import CONSTANT
 
 st. set_page_config(layout="wide") 
 
-st.title('Assumptions for Health Post Profitability')
+st.title('Assumptions for Health Post Sustainability')
 col1, col2 = st.columns(2)
 col1.markdown(body="""
 ### What is included:
@@ -58,7 +58,8 @@ if 'services' not in st.session_state:
     df = pd.read_csv('data/services.csv')
     df.set_index('service_type', inplace=True)
     df = df.astype(float)
-    df = df[['cost_per_service', 'service_prop']]
+    df = df[['revenue_per_service', 'cost_per_service', 'service_prop']]
+    df.sort_values('service_prop', ascending=False, inplace=True)
     st.session_state['services'] = df
 
 if 'equipment' not in st.session_state:

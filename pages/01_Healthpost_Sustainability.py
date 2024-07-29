@@ -6,17 +6,14 @@ from models.healthpost import HealthPost, Equipment, Service, HealthCareWorker
 from charts.breakdown import chart_cost_breakdown
 
 def calculate_income_statement_model() -> HealthPost:
-    for k, v in st.session_state.service.iterrows():
-        print (k, v)
-        break
-
     hp = HealthPost(
         name = "",
         patients = st.session_state.patients, 
         rev_per_visit = st.session_state.rev_per_visit,
         nurses = [HealthCareWorker(salary=st.session_state.salary) for _ in range(st.session_state.num_nurses)],
         equipment = [Equipment(equipment_type=k,**v) for k, v in st.session_state.equipment.iterrows()],
-        service = [Service(service_type=k, **v) for k, v in st.session_state.service.iterrows()]
+        services = [Service(service_type=k, **v) for k, v in st.session_state.services.iterrows()],
+        ehr_takeup = st.session_state.takeup
     )
 
     return hp
@@ -29,10 +26,12 @@ income_statement = st.empty()
 charts = st.empty()
 
 st.header("Revenue Drivers")
-col1, col2 = st.columns(2)
+col1, col2, col3, col4 = st.columns(4)
 
 number_of_patients = int(col1.number_input("Number of Patients per day: ", value=20, min_value=1, step=1, key='patients'))
 average_revenue_per_patient = float(col2.number_input("Average Revenue per Patient Visit: $", value=1_500, key="rev_per_visit"))
+implied_revenue = col3.empty()
+ehr_takeup = float(col4.number_input("EHR takeup: %", value=0.7, key="takeup"))
 
 col1, col2 = st.columns(2)
 col1.header("Cost Drivers")
@@ -78,17 +77,28 @@ with income_statement:
 
 with charts:
     with st.expander("Click down to see detailed breakdown"):
-        cost_breakdown, cashflow_chart, cashflows = st.tabs(['Cost Breakdown', 'Cashflow Chart', 'Cashflows'])
+        revenue, cost_breakdown, cashflow_chart, cashflows = st.tabs(['Revenue Drivers', 'Cost Breakdown', 'Cashflow Chart', 'Cashflows'])
         cost_breakdown.pyplot(hp.chart_cost_breakdown())
         cfs = hp.generate_cashflows()
         cashflows.dataframe(cfs.df)
         cashflow_chart.bar_chart(cfs.aggregate_frequency('QE'), y='total')
 
+        # TODO - move this to a better place
+        df_rev = cfs.aggregate_frequency('QE')
+        df_rev = df_rev[[c for c in df_rev.columns if c.endswith('rev')]]
+        column_totals = df_rev.sum()
+        sorted_columns = column_totals.sort_values(ascending=False).index
+        df_rev = df_rev[sorted_columns]
+        revenue.area_chart(df_rev)
+        
 cost_per_patient.metric(label="Cost per patient", 
               value=f"RWF {hp.cost_per_patient:,.1f}")
 
 patients_per_nurse.metric(label="Patients per nurse per day",
                           value=f"{hp.patients_per_nurse:,.1f}")
+
+implied_revenue.metric(label="Implied Revenue per Patient",
+                          value=f"{hp.implied_revenue_rate:,.1f}")
 
 st.markdown("### Note:")
 st.markdown("The above calculations are based on the assumptions made and may not reflect actual financial performance of a rural health post.")
