@@ -2,12 +2,14 @@ from __future__ import annotations
 from uuid import UUID
 from models.cashflow import CashFlow, CashFlowAggregator
 import datetime as dt
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from utils.constants import CONSTANT
 from pydantic import BaseModel
 
 # TODO put this is in a better place
-SALARY = 10_000
+SALARY = 10_000 * CONSTANT['USDxRWF']
 
 class HealthCareWorker(BaseModel):
     id: UUID | None = None
@@ -15,7 +17,6 @@ class HealthCareWorker(BaseModel):
     salary: float = SALARY
     start_date: dt.date = CONSTANT['start_date']
     end_date: dt.date = CONSTANT['end_date']
-    
 
 class Equipment(BaseModel):
     equipment_type: str
@@ -69,7 +70,7 @@ class HealthPost(BaseModel):
 
     @property
     def equipment_capital(self) -> float:
-        return sum([e.num_units * e.capital_investment for e in self.equipment]) * CONSTANT['USDxRWF']
+        return sum([e.num_units * e.capital_investment for e in self.equipment])
     
     @property
     def equipment_maintenance(self) -> float:
@@ -106,7 +107,7 @@ class HealthPost(BaseModel):
         for nurse in self.nurses:
             nurse_cf = CashFlow( 
                 name=nurse.name if nurse.name is not None else f"nurse_id_{nurse.id}", 
-                amount=-nurse.salary /12,
+                amount=-nurse.salary / 12,
                 frequency='ME'
                 )
             cfs.append(nurse_cf)
@@ -121,7 +122,20 @@ class HealthPost(BaseModel):
             cfs.extend([capital, maintain])
 
         return CashFlowAggregator(cfs)
+    
+    def chart_cost_breakdown(self: HealthPost) -> plt:
 
+        # Create a bar chart to show each of the individual costs in the total cost
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x=["Salaries", "Cost of Care", "Equipment Capital", "Equipment Maintenance"], 
+                    y=[self.salaries_cost, self.cost_of_care, self.equipment_capital, self.equipment_maintenance], palette="husl")
+
+        # Set title and labels
+        plt.title("Individual Costs in Total Cost")
+        plt.xlabel("Cost Category")
+        plt.ylabel("Cost (RWF)")
+
+        return plt
     
     def __add__(self, other: HealthPost) -> HealthPost:
         patients = self.patients + other.patients
@@ -141,21 +155,31 @@ class HealthPost(BaseModel):
     def __str__(self):
         return f"Total Net Income: Total = {self.net_income:.2f}"
 
-class HealthPostAggregator(HealthPost):
-    def __init__(self, healthposts: list[HealthPost]):
+class HealthPostAggregator():
+    def __init__(self, name:str, healthposts: list[HealthPost]):
         if not all(isinstance(healthpost, HealthPost) for healthpost in healthposts):
             raise ValueError("All elements in the list must be of type HealthPost")
+        self.name = name
         self.healthposts = healthposts    
         self._aggregate()
         
     def _aggregate(self):
-        self.patient = sum([hp.patient for hp in self.healthposts])
-        self.rev_per_visit = sum([hp.revenue for hp in self.healthposts]) / self.patient
+        patients = sum([hp.patients for hp in self.healthposts])
+        print(patients)
+        rev_per_visit = sum([hp.revenue for hp in self.healthposts]) / patients
 
-        self.nurses = [nurse for hp in self.healthposts for nurse in hp.nurses]
-        self.equipment = [equipment for hp in self.healthposts for equipment in hp.equipment]
-        self.services = [service for hp in self.healthposts for service in hp.service]
+        nurses = [nurse for hp in self.healthposts for nurse in hp.nurses]
+        equipment = [equipment for hp in self.healthposts for equipment in hp.equipment]
+        services = [service for hp in self.healthposts for service in hp.service]
 
+        self.hp = HealthPost(
+            name=self.name,
+            patients=patients,
+            rev_per_visit=rev_per_visit,
+            nurses=nurses,
+            equipment=equipment,
+            service=services)
+        
     def add(self, other: HealthPost):
         if not isinstance(other, HealthPost):
             raise ValueError("Unsupported type for aggregation")

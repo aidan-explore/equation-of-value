@@ -1,3 +1,40 @@
 equipment_type,capital_investment,monthly_maintenance,num_units
-Starlink,1000,10,1
-eFiche,100,50,1
+eFiche,0.0,50.0,
+Digital Health Officer (DHO),,0.0,
+WiFi Router,,0.0,
+Fridge,,0.0,
+Lights,,0.0,
+Autoclave,,0.0,
+Incubator,,0.0,
+Bluelake,,0.0,
+Whiteboard,,0.0,
+Camera,,0.0,
+Printer,,0.0,
+Router,,0.0,
+Bed,,0.0,
+Chair,,0.0,
+Office Desk,,0.0,
+Shelf,,0.0,
+Ultrasound,,0.0,
+BP Monitor,,0.0,
+Scale,,0.0,
+TV,,0.0,
+Extention Cables,,0.0,
+Laptop,139565.21739130434800000000,0.0,69
+Tablet,112333.33333333333300000000,0.0,60
+Starlink,487831.81818181818200000000,10.0,22
+UPS (Uninterruptible Power Supply),220000.00000000000000000000,0.0,9
+Raspberry Pi,0E-20,0.0,5
+Mini PC,0E-20,0.0,4
+Monitor mount,0E-20,0.0,4
+Computer Monitor,0E-20,0.0,4
+Whiteboard,0E-20,0.0,3
+HDMI Cable,0E-20,0.0,3
+USBC Cable,0E-20,0.0,2
+Speaker,0E-20,0.0,1
+Solar Kiosk,0E-20,0.0,1
+TV Screen,0E-20,0.0,1
+Projector,0E-20,0.0,1
+Coffee machine,0E-20,0.0,1
+Water dispenser,0E-20,0.0,1
+Microscope,0E-20,0.0,1

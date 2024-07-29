@@ -59,9 +59,8 @@ st.session_state['service'] = st.data_editor(df,
                key='service_change', use_container_width = True, on_change=update_cases)
 
 st.subheader("Equipment Costs")
-equipment_df = pd.read_csv('data/equipment.csv')
-equipment_df.set_index('equipment_type', inplace=True)
-equipment_df = equipment_df.astype(float)
+equipment_df = st.session_state.equipment
+equipment_df['num_units'] = 1
 st.session_state['equipment'] = st.data_editor(equipment_df, 
                num_rows = "dynamic",
                key='equipment_change', use_container_width=True)
@@ -80,7 +79,7 @@ with income_statement:
 with charts:
     with st.expander("Click down to see detailed breakdown"):
         cost_breakdown, cashflow_chart, cashflows = st.tabs(['Cost Breakdown', 'Cashflow Chart', 'Cashflows'])
-        cost_breakdown.pyplot(chart_cost_breakdown(hp))
+        cost_breakdown.pyplot(hp.chart_cost_breakdown())
         cfs = hp.generate_cashflows()
         cashflows.dataframe(cfs.df)
         cashflow_chart.bar_chart(cfs.aggregate_frequency('QE'), y='total')

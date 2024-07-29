@@ -1,8 +1,11 @@
 streamlit
+pydantic
 numpy
+numpy_financial
 pandas
 scipy==1.13.0
+statsmodels
 matplotlib
 seaborn
-pydantic
-numpy_financial
+sphinx
+fastapi

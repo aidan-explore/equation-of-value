@@ -4,8 +4,27 @@ import streamlit as st
 
 from utils.constants import CONSTANT
 
+st. set_page_config(layout="wide") 
 
 st.title('Assumptions for Health Post Profitability')
+col1, col2 = st.columns(2)
+col1.markdown(body="""
+### What is included:
+* Revenue = Patients per day * Ave Revenue Per Patient
+* Salary Cost = Number of nurses * salary
+* Cost of Service = Cost per Service * Proportion of Service * Patients
+* Equipment Capital = Type * Number * Cost to Install
+* Equipment Maintenance = Type * Number * Monthly Fee
+""")
+col2.markdown(body="""
+### Still to do:
+* Get the equipment list per facility
+* Get the nurse list
+* Lots of calibration
+* 20% margin on cost to serve
+* modelling payment delays
+* How many nurses per patient do we need?
+""")
 
 st.header('Overall Assumptions')
 col1, col2, col3, col4 = st.columns(4)
@@ -26,7 +45,8 @@ healthposts, nurses, services, equipment, constants = st.tabs(['Healthposts', 'N
 
 if 'healthposts' not in st.session_state:
     df = pd.read_csv('data/healthposts.csv')
-    df.set_index('id', inplace=True)
+    df.set_index('name', inplace=True)
+    df = df.astype(float)
     st.session_state['healthposts'] = df
 
 if 'nurses' not in st.session_state:
@@ -44,6 +64,7 @@ if 'services' not in st.session_state:
 if 'equipment' not in st.session_state:
     df = pd.read_csv('data/equipment.csv')
     df.set_index('equipment_type', inplace=True)
+    df.fillna(0.0, inplace=True)
     st.session_state['equipment'] = df
 
 with healthposts:
