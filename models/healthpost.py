@@ -45,9 +45,9 @@ class HealthPost(BaseModel):
     name: str = ""
 
     # revenue drivers
-    patients: int = 0
+    patients: int = 0                   # directly from the EHR
     rev_per_visit: float = 0.0
-    ehr_takeup: float = 1.0
+    ehr_takeup: float = 1.0             # use this to scale the revenue up from the 
 
     # cost drivers
     nurses: list[HealthCareWorker] = []
@@ -110,16 +110,15 @@ class HealthPost(BaseModel):
 
         cfs = []
         for service in self.services:
-            print(service.service_type)
             service_rev = CashFlow( name=f'{service.service_type}_rev', 
-                            amount=service.cases * service.revenue_per_service / self.ehr_takeup,
+                            amount= self.patients * service.service_prop * service.revenue_per_service / self.ehr_takeup,
                             frequency='D',
                             tag="revenue"
                             )
             cfs.append(service_rev)
 
             service_cf = CashFlow( name=f'{service.service_type}_cost', 
-                            amount=-service.cases * service.cost_per_service / self.ehr_takeup,
+                            amount= -self.patients * service.service_prop * service.cost_per_service / self.ehr_takeup,
                             frequency='D',
                             tag="cost_of_care"
                             )
@@ -189,7 +188,6 @@ class HealthPostAggregator():
         
     def _aggregate(self):
         patients = sum([hp.patients for hp in self.healthposts])
-        print(patients)
         rev_per_visit = sum([hp.revenue for hp in self.healthposts]) / patients
 
         nurses = [nurse for hp in self.healthposts for nurse in hp.nurses]
