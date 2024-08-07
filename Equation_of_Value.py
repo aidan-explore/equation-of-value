@@ -10,7 +10,8 @@ st.title('Assumptions for Health Post Sustainability')
 col1, col2 = st.columns(2)
 col1.markdown(body="""
 ### What is included:
-* Revenue = Patients per day * Ave Revenue Per Patient
+* Top Down Revenue = Patients per day * Ave Revenue Per Patient
+* Bottom Up Revenue = Patients per day * Proportion of each service * revenue per service
 * Salary Cost = Number of nurses * salary
 * Cost of Service = Cost per Service * Proportion of Service * Patients
 * Equipment Capital = Type * Number * Cost to Install
@@ -19,9 +20,11 @@ col1.markdown(body="""
 col2.markdown(body="""
 ### Still to do:
 * Get the equipment list per facility
-* Get the nurse list
+* Get the nurse/health care worker list
+* update the npv calc to be based off services (not top down revenue)
+* add different types of healthcare workers (not just nurses)
 * Lots of calibration
-* 20% margin on cost to serve
+* :tick: 20% margin on cost to serve
 * modelling payment delays
 * How many nurses per patient do we need?
 """)

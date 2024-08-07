@@ -15,6 +15,8 @@ class HealthCareWorker(BaseModel):
     id: UUID | None = None
     name: str = None
     salary: float = SALARY
+
+    # TODO: add in services that the HCW can perform
     start_date: dt.date = CONSTANT['start_date']
     end_date: dt.date = CONSTANT['end_date']
 

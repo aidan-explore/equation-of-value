@@ -93,6 +93,7 @@ if calculate.button('Calculate Breakeven', key='calculate'):
     breakeven_patients = find_breakeven(hp, 'patients', start=0, end=500, step=10)
     patients_breakeven.metric("Breakeven Number of Patients", breakeven_patients)
 
+    # TODO this wont work because the NPV calc is bottom up on services 
     # breakeven_revenue = find_breakeven(hp, 'average', 0, 500, 10)
     # revenue_breakeven.metric("Breakeven Revenue per Patient", breakeven_revenue)
 
@@ -100,4 +101,4 @@ if calculate.button('Calculate Breakeven', key='calculate'):
     nurses_breakeven.metric(f"Breakeven Number of Nurses", breakeven_nurses)
 
     breakeven_salary = find_breakeven_nurses(hp, change_nurses=False, change_salary=True, start=10_000_000, end=0, step=-100_000, target=0)
-    salary_breakeven.metric(f"Breakeven Number of Nurses", breakeven_salary)
+    salary_breakeven.metric(f"Breakeven Salary for Nurses", breakeven_salary)
